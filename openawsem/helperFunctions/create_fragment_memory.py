@@ -195,14 +195,12 @@ def create_fragment_memories(database, fasta_file, memories_per_position, brain_
 
         argument_A = ",".join([f"pdb{pdbID}.ent.gz" for pdbID in pdbs_to_download])
         argument_I = ",".join(list(folder_subset))
-        exeline = f"wget -r -nd -np -A '{argument_A}' -I '{argument_I}' ftp://ftp.wwpdb.org/pub/pdb/data/structures/divided/pdb/"
-        os.system(exeline)
+        if len(argument_A) > 0:
+            exeline = f"wget -r -nd -np -A '{argument_A}' -I '{argument_I}' ftp://ftp.wwpdb.org/pub/pdb/data/structures/divided/pdb/"
+            os.system(exeline)
 
         for pdbfull in unique:
             pdbID = pdbfull[0:4].lower()
-            pdbIDsecond = pdbfull[1:2].lower()
-            pdbIDthird = pdbfull[2:3].lower()
-            chainID = pdbfull[4:5].lower()
 
             if pdbID in pdbs_to_download:
                 os.system("nice gunzip pdb" + pdbID + ".ent.gz; mv pdb" + pdbID + ".ent " + pdb_dir + pdbID.upper() + ".pdb")
