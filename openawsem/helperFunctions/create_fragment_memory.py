@@ -169,6 +169,11 @@ def create_fragment_memories(database, fasta_file, memories_per_position, brain_
         homo = {}
         failed_pdb = {}
         homo_count = {}
+
+        # Download the PDBs here.
+        pdbs_to_download = list()
+        folder_subset = set()
+
         for pdbfull in unique:
             pdbID = pdbfull[0:4].lower()
             pdbIDsecond = pdbfull[1:2].lower()
@@ -185,12 +190,21 @@ def create_fragment_memories(database, fasta_file, memories_per_position, brain_
             # download PDBs if not exist    ##from script 'pdbget' (original author
             # unknown)
             if not os.path.isfile(pdb_dir + pdbID.upper() + ".pdb"):
-                exeline = "wget ftp://ftp.wwpdb.org/pub/pdb/data/structures/divided/pdb/"
-                exeline += pdbIDsecond + pdbIDthird + "/pdb" + pdbID + ".ent.gz"
-                os.system(exeline)
-                print(exeline)
-                os.system("nice gunzip pdb" + pdbID + ".ent.gz; mv pdb" +
-                        pdbID + ".ent " + pdb_dir + pdbID.upper() + ".pdb")
+                pdbs_to_download += "pdb" + pdbID + ".ent.gz"
+                folder_subset.add(f"/pub/pdb/data/structures/divided/pdb/{pdbIDsecond}{pdbIDthird}")
+
+        argument_A = ",".join(pdbs_to_download)
+        argument_I = ",".join(list(folder_subset))
+        exeline = f"wget -r -nd -np -A '{argument_A}' -I '{argument_I}' ftp://ftp.wwpdb.org/pub/pdb/data/structures/divided/pdb/"
+        os.system(exeline)
+
+        for pdbfull in unique:
+            pdbID = pdbfull[0:4].lower()
+            pdbIDsecond = pdbfull[1:2].lower()
+            pdbIDthird = pdbfull[2:3].lower()
+            chainID = pdbfull[4:5].lower()
+
+            os.system("nice gunzip pdb" + pdbID + ".ent.gz; mv pdb" + pdbID + ".ent " + pdb_dir + pdbID.upper() + ".pdb")
             if not os.path.isfile(pdb_dir + pdbID.upper() + ".pdb"):
                 failed_pdb[pdbID] = 1
                 print(":::Cannot build PDB for PDB ID, failed to download:" + pdbID.upper())
